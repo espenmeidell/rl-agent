@@ -6,12 +6,6 @@ from keras.layers import Dense
 from keras.models import Sequential
 import numpy as np
 
-env = gym.make("MountainCar-v0")
-observation = env.reset()
-env.render()
-
-done = False
-
 
 def build_model(n_observations: int, n_actions: int) -> Sequential:
     model = Sequential()
@@ -22,10 +16,17 @@ def build_model(n_observations: int, n_actions: int) -> Sequential:
     return model
 
 
-model = build_model(n_observations=env.observation_space.shape[0], n_actions=env.action_space.n)
-
-while not done:
-    action = np.argmax(model.predict(observation.reshape(1,2)))
-    print(action)
-    observation, reward, done, _ = env.step(action)
+def deploy_agent():
+    env = gym.make("MountainCar-v0")
+    observation = env.reset()
     env.render()
+    model = build_model(n_observations=env.observation_space.shape[0], n_actions=env.action_space.n)
+    done = False
+    while not done:
+        action = np.argmax(model.predict(observation.reshape(1, 2)))
+        observation, reward, done, _ = env.step(action)
+        env.render()
+
+
+if __name__ == "__main__":
+    deploy_agent()

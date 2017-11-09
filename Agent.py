@@ -6,6 +6,7 @@ from keras.layers import Dense
 from keras.models import Sequential
 from collections import deque
 import numpy as np
+from pprint import pprint
 
 
 def build_model(n_inputs: int, n_outputs: int) -> Sequential:
@@ -38,6 +39,7 @@ class Agent:
             action = self.get_next_action()
             print("Action:", action)
             observation, reward, done, _ = self.environment.step(action)
+            self.memory.append((self.last_observation, action, reward, observation))
             self.last_observation = observation.reshape(1, self.n_observations)
             self.environment.render()
 

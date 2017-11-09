@@ -6,6 +6,7 @@ from keras.layers import Dense
 from keras.models import Sequential
 from collections import deque
 import numpy as np
+from typing import List, Tuple
 from pprint import pprint
 
 
@@ -25,6 +26,13 @@ class Agent:
         self.last_observation = self.environment.reset().reshape(1, n_observations)
         self.memory = deque(maxlen=1000)
         self.Q_network: Sequential = build_model(n_inputs=n_observations, n_outputs=n_actions)
+
+    def get_random_cases_from_memory(self, n: int) -> List[Tuple]:
+        results = []
+        indices = np.random.randint(0, len(self.memory), n).tolist()
+        for i in indices:
+            results.append(self.memory[i])
+        return results
 
     def get_next_action(self):
         output = self.Q_network.predict(self.last_observation)

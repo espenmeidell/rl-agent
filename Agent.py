@@ -20,7 +20,8 @@ def build_model(n_inputs: int, n_outputs: int) -> Sequential:
 class Agent:
     def __init__(self, env, n_observations: int, n_actions: int):
         self.environment = env
-        self.last_observation = self.environment.reset().reshape(1, 2)  # TODO make non specific to environment
+        self.n_observations = n_observations
+        self.last_observation = self.environment.reset().reshape(1, n_observations)
         self.memory = deque(maxlen=1000)
         self.Q_network: Sequential = build_model(n_inputs=n_observations, n_outputs=n_actions)
 
@@ -37,7 +38,7 @@ class Agent:
             action = self.get_next_action()
             print("Action:", action)
             observation, reward, done, _ = self.environment.step(action)
-            self.last_observation = observation.reshape(1, 2)  # TODO make non specific to environment
+            self.last_observation = observation.reshape(1, self.n_observations)
             self.environment.render()
 
 

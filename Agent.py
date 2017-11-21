@@ -4,7 +4,7 @@
 
 import gym
 from keras.layers import Dense
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from collections import deque
 import numpy as np
 import random
@@ -20,6 +20,10 @@ def build_model(n_inputs: int, n_outputs: int) -> Sequential:
     return model
 
 
+def save_model(model: Sequential, name: str):
+    model.save("models/%s.h5" % name)
+
+
 class Agent:
     def __init__(self, env, n_observations: int, n_actions: int):
         self.environment = env
@@ -27,7 +31,7 @@ class Agent:
         self.batch_size = 32
         self.n_observations = n_observations
         self.last_state = self.environment.reset().reshape(1, n_observations)
-        self.memory = deque(maxlen=3000)
+        self.memory = deque(maxlen=1000)
         self.Q_network = build_model(n_inputs=n_observations, n_outputs=n_actions)
 
     # Replaced by random sample ?
@@ -40,10 +44,7 @@ class Agent:
 
     def get_next_action(self):
         output = self.Q_network.predict(self.last_state)
-        action = np.argmax(output)
-        if np.random.random() <= 0.2:
-            action = self.environment.action_space.sample()
-        return action
+        return np.random.choice(range(0, self.environment.action_space.n), p=output[0])
 
     def train(self):
         if len(self.memory) >= self.batch_size:
@@ -66,22 +67,29 @@ class Agent:
     def run(self):
         self.last_state = self.environment.reset().reshape(1, self.n_observations)
         done = False
+        total_reward = 0
         while not done:
             action = self.get_next_action()
             state, reward, done, _ = self.environment.step(action)
-            self.memory.append((self.last_state, action, reward, state, done))
+            total_reward += reward
+            self.memory.append((self.last_state, action, total_reward, state, done))
             self.train()
             self.last_state = state.reshape(1, self.n_observations)
+        return total_reward
 
 
 def main():
     env = gym.make("CartPole-v0")
-    env.render()
+    # env.render()
     agent = Agent(env=env, n_observations=env.observation_space.shape[0], n_actions=env.action_space.n)
-    trials = 0
+    # agent.Q_network = load_model("models/15.4.h5")
+    trials = 50
+    result = 0
     for trial in range(trials):
-        agent.run()
-        print(trial)
+        print("Trial %d" % trial)
+        result += agent.run()
+    print("Average result: %.3f" % (result/trials))
+    save_model(agent.Q_network, str(result/trials))
 
 
 if __name__ == "__main__":
